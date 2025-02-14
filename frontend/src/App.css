@@ -1,0 +1,75 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-image: url('./assets/background.jpg');
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    user-select: none;
+  }
+  
+  .login-box, .register-box, .reset-password-box {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    width: 300px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .login-box h2, .register-box h2, .reset-password-box h2, h1 {
+    margin: 0 0 20px;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .login-box form, .register-box form, .reset-password-box form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .login-box input, .register-box input, .reset-password-box input {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    font-size: 16px;
+  }
+  
+  .login-box button, .register-box button, .reset-password-box button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-box button:hover, .register-box button:hover, .reset-password-box button:hover {
+    background-color: #0056b3;
+  }
+  
+  .link {
+    margin-top: 15px;
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+  }
+  
+  .link span {
+    cursor: pointer;
+    color: #007bff;
+    text-decoration: underline;
+  }
+  
+  .link span:hover {
+    color: #0056b3;
+  }
+  
