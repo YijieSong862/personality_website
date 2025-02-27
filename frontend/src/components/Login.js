@@ -15,21 +15,21 @@ const Login = () => {
         window.location.href = '/home';
       }
     } catch (error) {
-      alert('登录失败，请检查用户名和密码');
+      alert('login failed');
     }
   };
 
   return (
     <div className="login-box">
-      <h2>登录</h2>
+      <h2>Sign On</h2>
       <form onSubmit={handleSubmit}>
         <input type="text" placeholder="用户名" value={username} onChange={(e) => setUsername(e.target.value)} />
         <input type="password" placeholder="密码" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit">登录</button>
+        <button type="submit">Sign On</button>
       </form>
       <div className="link">
-        <span onClick={() => window.location.href = '/register'}>前往注册</span> |
-        <span onClick={() => window.location.href = '/reset-password'}>忘记密码</span>
+        <span onClick={() => window.location.href = '/register'}>Register</span> |
+        <span onClick={() => window.location.href = '/reset-password'}>Forgot Password</span>
       </div>
     </div>
   );
