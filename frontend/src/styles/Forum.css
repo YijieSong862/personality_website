@@ -1,0 +1,55 @@
+/* 新增样式 */
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.new-post-btn {
+  display: block;
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  background: #3182ce;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.pagination button {
+  margin: 0 0.3rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.pagination button:disabled {
+  background: #3182ce;
+  color: white;
+}
+
+/* 新增样式 */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+  }
+  
+  .new-post-btn {
+    display: block;
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    background: #3182ce;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  
+  .pagination button {
+    margin: 0 0.3rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .pagination button:disabled {
+    background: #3182ce;
+    color: white;
+  }
