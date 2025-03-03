@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import User, db
+from backend.models import User, db
 from app.utils.mail import send_password_reset_email
 import re
 import datetime
