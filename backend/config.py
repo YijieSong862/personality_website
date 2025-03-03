@@ -1,15 +1,10 @@
-# config.py
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-# 加载 .env 文件
-load_dotenv()
-
-BASE_DIR = Path(__file__).parent
+# 确保路径指向当前目录（backend）
+BASE_DIR = Path(__file__).resolve().parent
 
 class Config:
-    # 从环境变量读取数据库 URL，默认使用 SQLite
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/app.db")
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR}/app.db"  # 数据库文件生成在 backend 目录
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv("SECRET_KEY")  # 必须设置
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
