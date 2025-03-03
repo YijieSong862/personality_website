@@ -53,3 +53,43 @@
     background: #3182ce;
     color: white;
   }
+
+  .post-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    color: #666;
+  }
+  
+  .vote-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .vote-btn:hover {
+    background: #f0f0f0;
+  }
+  
+  .pagination {
+    margin: 2rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .pagination button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .pagination button:disabled {
+    background: #3182ce;
+    color: white;
+    border-color: #3182ce;
+  }
