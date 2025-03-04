@@ -1,0 +1,30 @@
+.test-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+  
+  .options-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .options-grid button {
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .options-grid button.selected {
+    border-color: #3182ce;
+    background: #ebf8ff;
+  }
+  
+  .progress-bar {
+    margin-bottom: 1rem;
+    color: #666;
+  }

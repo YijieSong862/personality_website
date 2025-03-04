@@ -48,3 +48,27 @@ class PostVote(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class MBTIQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(500), nullable=False)
+    dimension = db.Column(db.Enum('EI', 'SN', 'TF', 'JP', name='mbti_dimensions'), nullable=False)
+
+class MBTIOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('mbti_question.id'), nullable=False)
+    text = db.Column(db.String(200), nullable=False)
+    trait_letter = db.Column(db.Enum('E','I','S','N','T','F','J','P'), nullable=False)
+
+class UserTestResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    scores = db.Column(db.JSON, nullable=False)  # 格式：{"E":5, "I":2, "S":4, ...}
+    mbti_type = db.Column(db.String(4), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class MBTIType(db.Model):
+    type_code = db.Column(db.String(4), primary_key=True)  # 如 "ENTJ"
+    description = db.Column(db.Text, nullable=False)
+    strengths = db.Column(db.Text)
+    weaknesses = db.Column(db.Text)    

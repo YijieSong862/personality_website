@@ -37,6 +37,16 @@ function App() {
             <CreatePost />
           </ProtectedRoute>
         } />
+        <Route path="/personality-test" element={
+          <ProtectedRoute>
+            <PersonalityTest />
+          </ProtectedRoute>
+        } />
+        <Route path="/test-results/:resultId" element={
+          <ProtectedRoute>
+            <TestResult />
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

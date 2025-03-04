@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from models import User, db, Post, Comment
-from datetime import datetime
+from models import User, db, Post, PostVote, MBTIQuestion, MBTIOption, UserTestResult
+from sqlalchemy import func
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from datetime import datetime, timedelta
 
@@ -117,3 +117,82 @@ def vote_post(post_id):
     
     db.session.commit()
     return jsonify({'votes': Post.query.get(post_id).votes}), 200
+
+
+# 获取MBTI测试题目
+@auth_bp.route('/api/mbti-test/questions', methods=['GET'])
+@jwt_required()
+def get_mbti_questions():
+    # 每个维度随机选7题
+    dimensions = ['EI', 'SN', 'TF', 'JP']
+    selected_questions = []
+    
+    for dim in dimensions:
+        questions = MBTIQuestion.query.filter_by(dimension=dim)\
+            .order_by(func.random()).limit(7).all()
+        selected_questions.extend(questions)
+    
+    return jsonify([{
+        'id': q.id,
+        'text': q.text,
+        'dimension': q.dimension,
+        'options': [{
+            'id': o.id,
+            'text': o.text
+        } for o in q.options]
+    } for q in selected_questions]), 200
+
+# 提交测试结果
+@auth_bp.route('/api/mbti-test/submit', methods=['POST'])
+@jwt_required()
+def submit_mbti_test():
+    user_id = get_jwt_identity()
+    answers = request.json['answers']  # [{question_id:1, option_id:3}, ...]
+    
+    # 初始化维度得分
+    dimension_scores = {
+        'E':0, 'I':0,
+        'S':0, 'N':0,
+        'T':0, 'F':0,
+        'J':0, 'P':0
+    }
+    
+    # 计算得分
+    for answer in answers:
+        option = MBTIOption.query.get(answer['option_id'])
+        dimension_scores[option.trait_letter] += 1
+    
+    # 确定MBTI类型
+    mbti_type = ''
+    mbti_type += 'E' if dimension_scores['E'] > dimension_scores['I'] else 'I'
+    mbti_type += 'S' if dimension_scores['S'] > dimension_scores['N'] else 'N'
+    mbti_type += 'T' if dimension_scores['T'] > dimension_scores['F'] else 'F'
+    mbti_type += 'J' if dimension_scores['J'] > dimension_scores['P'] else 'P'
+    
+    # 保存结果
+    new_result = UserTestResult(
+        user_id=user_id,
+        scores=dimension_scores,
+        mbti_type=mbti_type
+    )
+    db.session.add(new_result)
+    db.session.commit()
+    
+    return jsonify({
+        'result_id': new_result.id,
+        'mbti_type': mbti_type
+    }), 201
+
+# 获取测试结果
+@auth_bp.route('/api/personality-test/results/<int:result_id>', methods=['GET'])
+@jwt_required()
+def get_test_result(result_id):
+    result = UserTestResult.query.get_or_404(result_id)
+    personality = PersonalityType.query.get(result.dominant_trait)
+    return jsonify({
+        'trait': result.dominant_trait,
+        'scores': result.trait_scores,
+        'description': personality.description,
+        'strengths': personality.strengths,
+        'weaknesses': personality.weaknesses
+    }), 200
