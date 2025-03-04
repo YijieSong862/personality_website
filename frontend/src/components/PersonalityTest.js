@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import '../styles/PersonalityTest.css'; 
 
 const PersonalityTest = () => {
+  // 状态管理
+  const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({
     E: 0, I: 0,
@@ -9,128 +12,154 @@ const PersonalityTest = () => {
     J: 0, P: 0
   });
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 标准MBTI测试问题（精简版）
-  const questions = [
-    // E-I 维度
-    { 
-      question: "你通常喜欢",
-      dimension: 'E-I',
-      options: [
-        { text: "和大家一起交流", score: { E: 1 } },
-        { text: "独自思考或与少数人深入交流", score: { I: 1 } }
-      ]
-    },
-    // S-N 维度
-    {
-      question: "你更倾向于相信",
-      dimension: 'S-N',
-      options: [
-        { text: "具体的事实和数据", score: { S: 1 } },
-        { text: "灵感和想象力", score: { N: 1 } }
-      ]
-    },
-    // T-F 维度
-    {
-      question: "做决定时，你更注重",
-      dimension: 'T-F',
-      options: [
-        { text: "客观逻辑和公平性", score: { T: 1 } },
-        { text: "人情和睦与同理心", score: { F: 1 } }
-      ]
-    },
-    // J-P 维度
-    {
-      question: "你更喜欢的生活方式是",
-      dimension: 'J-P',
-      options: [
-        { text: "有计划、有组织的", score: { J: 1 } },
-        { text: "灵活、随性的", score: { P: 1 } }
-      ]
-    },
-    // 可继续添加更多问题...
-  ];
+  // 获取测试题目
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch('/api/mbti-test/questions');
+        if (!response.ok) throw new Error('获取题目失败');
+        const data = await response.json();
+        
+        // 转换API数据结构
+        const formattedQuestions = data.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          dimension: q.dimension,
+          options: q.options.map((opt, index) => ({
+            text: opt.text,
+            trait: q.dimension[index], // E/I/S/N等
+            weight: opt.weight || 1
+          }))
+        }));
 
-  const handleAnswer = (selectedScore) => {
-    const newScores = { ...scores };
-    Object.entries(selectedScore).forEach(([key, value]) => {
-      newScores[key] += value;
-    });
-    setScores(newScores);
+        setQuestions(formattedQuestions);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
 
+    fetchQuestions();
+  }, []);
+
+  // 处理选项选择
+  const handleAnswer = (selectedTrait, weight) => {
+    // 更新分数
+    setScores(prev => ({
+      ...prev,
+      [selectedTrait]: prev[selectedTrait] + weight
+    }));
+
+    // 跳转下一题或计算结果
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      calculateResult(newScores);
+      calculateFinalResult();
     }
   };
 
-  const calculateResult = (finalScores) => {
-    const type = [
-      finalScores.E >= finalScores.I ? 'E' : 'I',
-      finalScores.S >= finalScores.N ? 'S' : 'N',
-      finalScores.T >= finalScores.F ? 'T' : 'F',
-      finalScores.J >= finalScores.P ? 'J' : 'P'
+  // 计算结果
+  const calculateFinalResult = async () => {
+    const mbtiType = [
+      scores.E >= scores.I ? 'E' : 'I',
+      scores.S >= scores.N ? 'S' : 'N',
+      scores.T >= scores.F ? 'T' : 'F',
+      scores.J >= scores.P ? 'J' : 'P'
     ].join('');
 
-    // MBTI类型描述
-    const typeDescriptions = {
-      'ISTJ': '严谨的检查者',
-      'ISFJ': '忠诚的保护者',
-      'INFJ': '博爱的倡导者',
-      'INTJ': '智谋的战略家',
-      'ISTP': '务实的探险家',
-      'ISFP': '艺术家的创作者',
-      'INFP': '哲学的理想家',
-      'INTP': '逻辑的发明家',
-      'ESTP': '灵活的实干家',
-      'ESFP': '热情的表演者',
-      'ENFP': '灵感的激发者',
-      'ENTP': '智慧的挑战者',
-      'ESTJ': '高效的执行者',
-      'ESFJ': '和谐的助人者',
-      'ENFJ': '魅力的领导者',
-      'ENTJ': '果断的指挥官'
-    };
+    try {
+      // 提交结果到后端
+      const response = await fetch('/api/mbti-test/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          answers: questions.map((q, index) => ({
+            question_id: q.id,
+            choice_index: 0 // 这里需要根据实际选择记录
+          }))
+        })
+      });
 
-    setResult({
-      type,
-      description: typeDescriptions[type] || '独特的个性类型'
-    });
+      const resultData = await response.json();
+      setResult(resultData);
+    } catch (err) {
+      setError('提交结果失败');
+    }
   };
 
+  // 渲染加载状态
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loader"></div>
+        <p>正在加载测试题目...</p>
+      </div>
+    );
+  }
+
+  // 渲染错误状态
+  if (error) {
+    return (
+      <div className="error-container">
+        <h3>发生错误</h3>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>重试</button>
+      </div>
+    );
+  }
+
+  // 渲染测试结果
+  if (result) {
+    return (
+      <div className="result-container">
+        <h2>你的MBTI类型是：{result.mbti_type}</h2>
+        <div className="radar-chart">
+          {/* 这里可以集成图表库 */}
+        </div>
+        <div className="dimension-scores">
+          {Object.entries(result.dimension_ratios).map(([dim, score]) => (
+            <div key={dim} className="dimension">
+              <span>{dim}</span>
+              <div className="score-bar" style={{ width: `${Math.abs(score)*10}%` }}>
+                {score > 0 ? dim[0] : dim[1]}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => window.location.reload()}>重新测试</button>
+      </div>
+    );
+  }
+
+  // 渲染当前问题
+  const currentQ = questions[currentQuestion];
   return (
-    <div className="mbti-test">
-      {!result ? (
-        <div className="question-container">
-          <h3>问题 {currentQuestion + 1}/{questions.length}</h3>
-          <p>{questions[currentQuestion].question}</p>
-          <div className="options">
-            {questions[currentQuestion].options.map((option, index) => (
-              <button 
-                key={index}
-                onClick={() => handleAnswer(option.score)}
-              >
-                {option.text}
-              </button>
-            ))}
-          </div>
+    <div className="test-container">
+      <div className="progress-bar">
+        <div style={{ width: `${(currentQuestion+1)/questions.length*100}%` }}></div>
+        <span>问题 {currentQuestion + 1}/{questions.length}</span>
+      </div>
+      
+      <div className="question-card">
+        <h3>{currentQ.text}</h3>
+        <div className="options">
+          {currentQ.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleAnswer(option.trait, option.weight)}
+            >
+              {option.text}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="result">
-          <h2>你的MBTI类型是：{result.type}</h2>
-          <p>{result.description}</p>
-          <div className="type-detail">
-            <p>维度解析：</p>
-            <ul>
-              <li>{scores.E >= scores.I ? 'E 外向' : 'I 内向'} ({Math.abs(scores.E - scores.I)})</li>
-              <li>{scores.S >= scores.N ? 'S 实感' : 'N 直觉'} ({Math.abs(scores.S - scores.N)})</li>
-              <li>{scores.T >= scores.F ? 'T 思考' : 'F 情感'} ({Math.abs(scores.T - scores.F)})</li>
-              <li>{scores.J >= scores.P ? 'J 判断' : 'P 知觉'} ({Math.abs(scores.J - scores.P)})</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

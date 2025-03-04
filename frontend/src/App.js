@@ -22,6 +22,7 @@ function App() {
             <IntroductionPersonality />
           </ProtectedRoute>
         } />
+        {/*
         <Route path="/forum" element={
           <ProtectedRoute>
           <Forum />
@@ -47,6 +48,7 @@ function App() {
             <TestResult />
           </ProtectedRoute>
         } />
+        */}
       </Routes>
     </BrowserRouter>
   );

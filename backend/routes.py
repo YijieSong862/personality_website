@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
-from models import User, db, Post, PostVote, MBTIQuestion, MBTIOption, UserTestResult
+from models import User, db, Post, PostVote, MBTIQuestion, UserTestResult, MBTIType
 from sqlalchemy import func
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from datetime import datetime, timedelta
+import random
+from collections import defaultdict
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -66,7 +68,7 @@ def get_posts():
         'comment_count': len(post.comments)
     } for post in posts]), 200
 
-@auth_bp.route('/api/posts', methods=['GET'])
+@auth_bp.route('/posts', methods=['GET'])
 def get_posts():
     page = request.args.get('page', 1, type=int)
     per_page = 10  # 每页10条
@@ -87,7 +89,7 @@ def get_posts():
     }), 200
 
 # 创建帖子
-@auth_bp.route('/api/posts', methods=['POST'])
+@auth_bp.route('/posts', methods=['POST'])
 @jwt_required()
 def create_post():
     data = request.get_json()
@@ -101,7 +103,7 @@ def create_post():
     return jsonify({'message': 'Post created'}), 201
 
 # 点赞功能
-@auth_bp.route('/api/posts/<int:post_id>/vote', methods=['POST'])
+@auth_bp.route('/posts/<int:post_id>/vote', methods=['POST'])
 @jwt_required()
 def vote_post(post_id):
     user_id = get_jwt_identity()
@@ -119,80 +121,165 @@ def vote_post(post_id):
     return jsonify({'votes': Post.query.get(post_id).votes}), 200
 
 
-# 获取MBTI测试题目
-@auth_bp.route('/api/mbti-test/questions', methods=['GET'])
+@auth_bp.route('/mbti-test/questions', methods=['GET'])
 @jwt_required()
 def get_mbti_questions():
-    # 每个维度随机选7题
+    # 验证题库完整性（可选）
     dimensions = ['EI', 'SN', 'TF', 'JP']
-    selected_questions = []
-    
-    for dim in dimensions:
-        questions = MBTIQuestion.query.filter_by(dimension=dim)\
-            .order_by(func.random()).limit(7).all()
-        selected_questions.extend(questions)
-    
-    return jsonify([{
-        'id': q.id,
-        'text': q.text,
-        'dimension': q.dimension,
-        'options': [{
-            'id': o.id,
-            'text': o.text
-        } for o in q.options]
-    } for q in selected_questions]), 200
+    question_count = {
+        'EI': MBTIQuestion.query.filter_by(dimension='EI').count(),
+        'SN': MBTIQuestion.query.filter_by(dimension='SN').count(),
+        # ...其他维度
+    }
+    if any(v < 10 for v in question_count.values()):
+        return jsonify(error="题库尚未初始化完成"), 503
 
-# 提交测试结果
-@auth_bp.route('/api/mbti-test/submit', methods=['POST'])
+    # 优化后的查询逻辑
+    selected_questions = []
+    for dim in dimensions:
+        questions = MBTIQuestion.query.filter_by(
+            dimension=dim,
+            is_verified=True  # 新增审核状态过滤
+        ).order_by(func.random()).limit(10).all()  # 每个维度取10题
+        
+        selected_questions.extend([
+            {
+                "id": q.id,
+                "text": q.text,
+                "dimension": q.dimension,
+                "options": [
+                    {"text": q.option_a, "trait": dim[0], "weight": q.weight},
+                    {"text": q.option_b, "trait": dim[1], "weight": q.weight}
+                ]
+            } for q in questions
+        ])
+    
+    # 打乱题目顺序但保持维度平衡
+    random.shuffle(selected_questions)
+    return jsonify(questions=selected_questions), 200
+
+
+@auth_bp.route('/mbti-test/submit', methods=['POST'])
 @jwt_required()
 def submit_mbti_test():
     user_id = get_jwt_identity()
-    answers = request.json['answers']  # [{question_id:1, option_id:3}, ...]
-    
-    # 初始化维度得分
-    dimension_scores = {
-        'E':0, 'I':0,
-        'S':0, 'N':0,
-        'T':0, 'F':0,
-        'J':0, 'P':0
-    }
-    
-    # 计算得分
-    for answer in answers:
-        option = MBTIOption.query.get(answer['option_id'])
-        dimension_scores[option.trait_letter] += 1
-    
-    # 确定MBTI类型
-    mbti_type = ''
-    mbti_type += 'E' if dimension_scores['E'] > dimension_scores['I'] else 'I'
-    mbti_type += 'S' if dimension_scores['S'] > dimension_scores['N'] else 'N'
-    mbti_type += 'T' if dimension_scores['T'] > dimension_scores['F'] else 'F'
-    mbti_type += 'J' if dimension_scores['J'] > dimension_scores['P'] else 'P'
-    
-    # 保存结果
-    new_result = UserTestResult(
-        user_id=user_id,
-        scores=dimension_scores,
-        mbti_type=mbti_type
-    )
-    db.session.add(new_result)
-    db.session.commit()
-    
-    return jsonify({
-        'result_id': new_result.id,
-        'mbti_type': mbti_type
-    }), 201
+    answers = request.json.get('answers', [])
 
-# 获取测试结果
-@auth_bp.route('/api/personality-test/results/<int:result_id>', methods=['GET'])
+    # 初始化维度得分跟踪器
+    dimension_scores = defaultdict(float)
+    processed_questions = set()
+
+    # 事务处理
+    try:
+        for answer in answers:
+            # 验证数据格式
+            if 'question_id' not in answer or 'choice_index' not in answer:
+                raise ValueError("Invalid answer format")
+            
+            question = MBTIQuestion.query.get_or_404(answer['question_id'])
+            
+            # 防止重复计分
+            if question.id in processed_questions:
+                continue
+            processed_questions.add(question.id)
+            
+            # 确定选择的特质和权重
+            choice = answer['choice_index']
+            if choice not in (0, 1):
+                raise ValueError("Invalid choice index")
+            
+            selected_trait = question.dimension[choice]
+            dimension_scores[selected_trait] += question.weight  # 应用题目权重
+
+        # 计算MBTI类型
+        ei_ratio = dimension_scores.get('E', 0) - dimension_scores.get('I', 0)
+        sn_ratio = dimension_scores.get('S', 0) - dimension_scores.get('N', 0)
+        tf_ratio = dimension_scores.get('T', 0) - dimension_scores.get('F', 0)
+        jp_ratio = dimension_scores.get('J', 0) - dimension_scores.get('P', 0)
+        
+        mbti_type = ''.join([
+            'E' if ei_ratio >= 0 else 'I',
+            'S' if sn_ratio >= 0 else 'N',
+            'T' if tf_ratio >= 0 else 'F',
+            'J' if jp_ratio >= 0 else 'P'
+        ])
+
+        # 保存完整结果
+        new_result = UserTestResult(
+            user_id=user_id,
+            e_score=dimension_scores.get('E', 0),
+            i_score=dimension_scores.get('I', 0),
+            s_score=dimension_scores.get('S', 0),
+            n_score=dimension_scores.get('N', 0),
+            t_score=dimension_scores.get('T', 0),
+            f_score=dimension_scores.get('F', 0),
+            j_score=dimension_scores.get('J', 0),
+            p_score=dimension_scores.get('P', 0),
+            ei_ratio=ei_ratio,
+            sn_ratio=sn_ratio,
+            tf_ratio=tf_ratio,
+            jp_ratio=jp_ratio,
+            mbti_type=mbti_type
+        )
+        db.session.add(new_result)
+        db.session.commit()
+
+        return jsonify({
+            "result_id": new_result.id,
+            "mbti_type": mbti_type,
+            "dimension_ratios": {
+                "EI": ei_ratio,
+                "SN": sn_ratio,
+                "TF": tf_ratio,
+                "JP": jp_ratio
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(error=str(e)), 400
+    
+
+@auth_bp.route('/mbti-test/results/<int:result_id>', methods=['GET'])
 @jwt_required()
 def get_test_result(result_id):
     result = UserTestResult.query.get_or_404(result_id)
-    personality = PersonalityType.query.get(result.dominant_trait)
-    return jsonify({
-        'trait': result.dominant_trait,
-        'scores': result.trait_scores,
-        'description': personality.description,
-        'strengths': personality.strengths,
-        'weaknesses': personality.weaknesses
-    }), 200
+    mbti_profile = MBTIType.query.get(result.mbti_type)
+    
+    if not mbti_profile:
+        return jsonify(error="MBTI类型数据未找到"), 404
+
+    # 构建详细报告
+    response_data = {
+        "mbti_type": result.mbti_type,
+        "dimension_scores": {
+            "E": result.e_score,
+            "I": result.i_score,
+            "S": result.s_score,
+            "N": result.n_score,
+            "T": result.t_score,
+            "F": result.f_score,
+            "J": result.j_score,
+            "P": result.p_score
+        },
+        "dimension_ratios": {
+            "EI": result.ei_ratio,
+            "SN": result.sn_ratio,
+            "TF": result.tf_ratio,
+            "JP": result.jp_ratio
+        },
+        "type_info": {
+            "description": mbti_profile.description,
+            "strengths": mbti_profile.strengths.split(';') if mbti_profile.strengths else [],
+            "weaknesses": mbti_profile.weaknesses.split(';') if mbti_profile.weaknesses else [],
+            "career_recommendations": mbti_profile.career_recommendations.split(';') if mbti_profile.career_recommendations else [],
+            "famous_examples": mbti_profile.famous_people.split(';') if mbti_profile.famous_people else []
+        },
+        "test_metadata": {
+            "test_date": result.created_at.isoformat(),
+            "questions_answered": len(result.processed_questions)
+        }
+    }
+    
+    return jsonify(response_data), 200
+

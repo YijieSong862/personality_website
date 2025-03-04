@@ -1,9 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 from config import Config  # 直接导入同级模块
-from models import db, MBTIQuestion, MBTIOption, MBTIType
+from models import db
 from routes import auth_bp  # 直接导入同级模
-from db_init import create_test_data
+from db_init import initialize_database
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -21,7 +21,7 @@ app.register_blueprint(auth_bp, url_prefix='/api')
 def create_db():
     with app.app_context():
         db.create_all()
-        create_test_data()
+        initialize_database()
 
 if __name__ == '__main__':
     print(app.url_map)
