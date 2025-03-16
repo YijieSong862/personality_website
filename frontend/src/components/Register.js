@@ -14,10 +14,11 @@ const Register = () => {
       alert(registerResponse.data.message);
 
       // 注册成功后自动登录
-      const loginResponse = await axios.post('http://localhost:5000/api/login', { email, password });
+      const loginResponse = await axios.post('http://localhost:5000/api/login', { username, password });
       if (loginResponse.status === 200) {
         // 保存 token 到 localStorage 或其他存储
         localStorage.setItem('token', loginResponse.data.token);
+        localStorage.setItem('user', loginResponse.data.user);
         alert('登录成功');
         window.location.href = '/'; // 跳转到首页
       } else {

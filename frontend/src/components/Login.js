@@ -25,7 +25,7 @@ const handleSubmit = async (e) => {
     
     // ✅ 保存 Token 到 localStorage
     localStorage.setItem('token', data.token);
-    localStorage.setItem('email', data.email);
+    localStorage.setItem('user', data.user);
     
     // 跳转到首页或其他页面
     navigate('/');
