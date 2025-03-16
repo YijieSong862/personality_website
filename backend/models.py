@@ -21,10 +21,10 @@ class User(db.Model):
     test_results = db.relationship('UserTestResult', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
-        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        self.password_hash = password #bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def check_password(self, password):
-        return bcrypt.checkpw(password.encode(), self.password_hash.encode())
+        return password == self.password_hash #bcrypt.checkpw(password.encode(), self.password_hash.encode())
 
     def generate_reset_token(self, expires_in=3600):
         return {
