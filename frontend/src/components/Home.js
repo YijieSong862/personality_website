@@ -16,8 +16,11 @@ const Home = () => {
               headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
             if (!response.ok) {
+              console.log("token is wrong!");
               localStorage.removeItem('token');
               setIsLoggedIn(false);
+            }else{
+              setIsLoggedIn(true);
             }
           } catch (error) {
             localStorage.removeItem('token');
@@ -26,6 +29,7 @@ const Home = () => {
         };
       
         const token = localStorage.getItem('token');
+        console.log("get token===>",token);
         if (token) {
           validateToken();
           const interval = setInterval(validateToken, 5 * 60 * 1000); // 每5分钟验证一次
@@ -43,8 +47,10 @@ const Home = () => {
     // 处理顶部按钮点击（未登录跳转到登录页）
     const handleProtectedAction = (path) => {
         if (!isLoggedIn) {
+          console.log('User is not logged in');
           navigate('/login');
         } else {
+          console.log('User is logged in, navigating to:', path);
           navigate(path); // 跳转到目标页面（需后续开发）
         }
       };
@@ -85,7 +91,8 @@ const Home = () => {
 
       {/* 中间测试按钮 */}
       <div className="center-button">
-        <button className="start-test-btn">Start Test</button>
+        <button className="start-test-btn" 
+        onClick={() => handleProtectedAction('/personality-test')}>Start Test</button>
       </div>
 
       {/* 底部导航按钮 */}
