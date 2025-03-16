@@ -1,7 +1,6 @@
 // frontend/src/components/ResetPassword.js
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { resetPassword } from '../api';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -17,10 +16,10 @@ const ResetPassword = () => {
       return;
     }
     try {
-      await api.post('/api/reset-password', { 
-        token: token, 
-        new_password: newPassword 
-      });
+      //await api.post('/api/reset-password', { 
+      //  token: token, 
+      //  new_password: newPassword 
+      //});
       setMessage('Password reset successfully!');
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {

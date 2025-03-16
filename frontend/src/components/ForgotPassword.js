@@ -1,7 +1,6 @@
 // frontend/src/components/ForgotPassword.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { forgotPassword } from '../api';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +9,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await forgotPassword({ email });
+      //await forgotPassword({ email });
       setMessage('If the email exists, a reset link has been sent.');
     } catch (error) {
       setMessage('Failed to send reset link.');

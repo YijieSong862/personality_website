@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import '../styles/Forum.css'; 
-
+import Pagination from './Pagination';
 
 const Forum = () => {
     const [data, setData] = useState({
@@ -10,7 +10,8 @@ const Forum = () => {
       total_pages: 1,
       current_page: 1
     });
-  
+    
+
     // 获取帖子列表（带分页）
     const fetchPosts = async (page = 1) => {
       try {
@@ -50,7 +51,7 @@ const Forum = () => {
   
     return (
       <div className="forum-container">
-        <Link to="/create-post" className="new-post-btn">New Post</Link>
+        
         
         <div className="posts-list">
           {data.posts.map(post => (
@@ -81,7 +82,7 @@ const Forum = () => {
             </div>
           ))}
         </div>
-  
+        <Link to="/create-post" className="new-post-btn">New Post</Link>
         {/* 分页组件 */}
         {data.total_pages > 1 && (
           <Pagination

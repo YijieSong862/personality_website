@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import '../App.css';
+import '../styles/Login.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -26,6 +25,7 @@ const handleSubmit = async (e) => {
     
     // ✅ 保存 Token 到 localStorage
     localStorage.setItem('token', data.token);
+    localStorage.setItem('email', data.email);
     
     // 跳转到首页或其他页面
     navigate('/');
@@ -35,17 +35,19 @@ const handleSubmit = async (e) => {
 };
 
   return (
+    <div className="login-container">
     <div className="login-box">
       <h2>Sign On</h2>
       <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="用户名" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input type="password" placeholder="密码" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input type="text" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <button type="submit">Sign On</button>
       </form>
       <div className="link">
         <span onClick={() => window.location.href = '/register'}>Register</span> |
         <span onClick={() => window.location.href = '/reset-password'}>Forgot Password</span>
       </div>
+    </div>
     </div>
   );
 };

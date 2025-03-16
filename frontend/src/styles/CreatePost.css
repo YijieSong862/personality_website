@@ -1,0 +1,66 @@
+/* 基础样式和布局 */
+body {
+    background-color: #f4f4f9; /* 淡灰色背景 */
+    color: #333; /* 文字颜色 */
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff; /* 白色背景 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 轻微阴影，增加立体感 */
+    border-radius: 8px; /* 圆角边框 */
+  }
+  
+  /* 表单样式 */
+  .create-post form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .create-post label {
+    display: none; /* 隐藏标签，因为我们使用 placeholder */
+  }
+  
+  .create-post input[type="text"],
+  .create-post textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .create-post textarea {
+    resize: vertical; /* 允许垂直调整大小 */
+    min-height: 100px; /* 最小高度 */
+  }
+  
+  .create-post button {
+    padding: 10px 15px;
+    background-color: #5cb85c; /* 绿色背景 */
+    border: none;
+    border-radius: 4px;
+    color: #fff; /* 白色文字 */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* 平滑过渡效果 */
+  }
+  
+  .create-post button:hover {
+    background-color: #4cae4c; /* 鼠标悬停时背景色变深 */
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .container {
+      width: 95%;
+      padding: 15px;
+    }
+  }

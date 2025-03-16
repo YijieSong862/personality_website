@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 用于页面跳转
 import '../styles/PersonalityTest.css'; 
 
 const PersonalityTest = () => {
-  // 状态管理
+  const navigate = useNavigate(); // 用于跳转
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({
@@ -14,16 +15,19 @@ const PersonalityTest = () => {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedAnswers, setSelectedAnswers] = useState([]);
 
   // 获取测试题目
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch('/api/mbti-test/questions');
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/mbti-test/questions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!response.ok) throw new Error('获取题目失败');
         const data = await response.json();
         
-        // 转换API数据结构
         const formattedQuestions = data.questions.map(q => ({
           id: q.id,
           text: q.text,
@@ -36,6 +40,7 @@ const PersonalityTest = () => {
         }));
 
         setQuestions(formattedQuestions);
+        setSelectedAnswers(new Array(formattedQuestions.length).fill(null)); // 初始化选择数组
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -47,23 +52,43 @@ const PersonalityTest = () => {
   }, []);
 
   // 处理选项选择
-  const handleAnswer = (selectedTrait, weight) => {
-    // 更新分数
+  const handleAnswer = (choiceIndex) => {
+    console.log("当前题目:", currentQuestion, "选择选项索引:", choiceIndex);
+
+    const selectedOption = questions[currentQuestion].options[choiceIndex];
+    const selectedTrait = selectedOption.trait;
+    const weight = selectedOption.weight;
+
     setScores(prev => ({
       ...prev,
       [selectedTrait]: prev[selectedTrait] + weight
     }));
 
-    // 跳转下一题或计算结果
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      calculateFinalResult();
-    }
+    // 更新 selectedAnswers 数组
+    setSelectedAnswers(prev => {
+      const newSelected = [...prev];
+      newSelected[currentQuestion] = choiceIndex;
+      return newSelected;
+    });
+
+    // 等待 selectedAnswers 更新完成后再执行下一步
+    setTimeout(() => {
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        setTimeout(calculateFinalResult, 200); // 确保 selectedAnswers 被更新
+      }
+    }, 100);
   };
 
-  // 计算结果
+  // 计算最终结果
   const calculateFinalResult = async () => {
+    if (selectedAnswers.includes(null)) {   
+      console.log("==>error! not all questions answered:", selectedAnswers);
+      //setError("请先完成所有题目");
+      // return;
+    }
+
     const mbtiType = [
       scores.E >= scores.I ? 'E' : 'I',
       scores.S >= scores.N ? 'S' : 'N',
@@ -72,23 +97,25 @@ const PersonalityTest = () => {
     ].join('');
 
     try {
-      // 提交结果到后端
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/mbti-test/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           answers: questions.map((q, index) => ({
             question_id: q.id,
-            choice_index: 0 // 这里需要根据实际选择记录
+            choice_index: selectedAnswers[index]
           }))
         })
       });
 
+      if (!response.ok) throw new Error('提交结果失败');
       const resultData = await response.json();
-      setResult(resultData);
+      console.log("=====> result.id", resultData.result_id);
+      navigate(`/test-results/${resultData.result_id}`);
     } catch (err) {
       setError('提交结果失败');
     }
@@ -110,7 +137,7 @@ const PersonalityTest = () => {
       <div className="error-container">
         <h3>发生错误</h3>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>重试</button>
+        <button onClick={() => window.location.reload()}>re-test</button>
       </div>
     );
   }
@@ -120,20 +147,8 @@ const PersonalityTest = () => {
     return (
       <div className="result-container">
         <h2>你的MBTI类型是：{result.mbti_type}</h2>
-        <div className="radar-chart">
-          {/* 这里可以集成图表库 */}
-        </div>
-        <div className="dimension-scores">
-          {Object.entries(result.dimension_ratios).map(([dim, score]) => (
-            <div key={dim} className="dimension">
-              <span>{dim}</span>
-              <div className="score-bar" style={{ width: `${Math.abs(score)*10}%` }}>
-                {score > 0 ? dim[0] : dim[1]}
-              </div>
-            </div>
-          ))}
-        </div>
-        <button onClick={() => window.location.reload()}>重新测试</button>
+ 
+        <button onClick={() => window.location.reload()}>test again</button>
       </div>
     );
   }
@@ -143,8 +158,8 @@ const PersonalityTest = () => {
   return (
     <div className="test-container">
       <div className="progress-bar">
-        <div style={{ width: `${(currentQuestion+1)/questions.length*100}%` }}></div>
-        <span>问题 {currentQuestion + 1}/{questions.length}</span>
+        <div style={{ width: `${(currentQuestion + 1) / questions.length * 100}%` }}></div>
+        <span>Question: {currentQuestion + 1}/{questions.length}</span>
       </div>
       
       <div className="question-card">
@@ -153,7 +168,8 @@ const PersonalityTest = () => {
           {currentQ.options.map((option, index) => (
             <button
               key={index}
-              onClick={() => handleAnswer(option.trait, option.weight)}
+              onClick={() => handleAnswer(index)}
+              className={selectedAnswers[currentQuestion] === index ? 'selected' : ''}
             >
               {option.text}
             </button>
