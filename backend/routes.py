@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import User, db, Post, PostVote, MBTIQuestion, UserTestResult, MBTIType
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token,  decode_token
 from datetime import datetime, timedelta
 import random
 from collections import defaultdict
@@ -53,9 +53,18 @@ def reset_password():
     return jsonify({"message": "Password updated"}), 200
 
 @auth_bp.route('/validate-token', methods=['GET'])
-@jwt_required()
 def validate_token():
-    return jsonify({"valid": True}), 200
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]  # 获取 Bearer 后面的 token
+    else:
+        token = None  # 处理无 token 的情况
+    try:
+        decoded = decode_token(token)
+        print("decode token====>", decoded)
+        return jsonify({"valid": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 # 论坛相关路由
 @auth_bp.route('/posts', methods=['GET'])
