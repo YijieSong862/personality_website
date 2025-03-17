@@ -28,7 +28,7 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     if not user or not user.check_password(data['password']):
         return jsonify({"error": "Invalid credentials"}), 401
-    access_token = create_access_token(identity=user.id, expires_delta=timedelta(days=30))  # 有效期30天
+    access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=30))  # 有效期30天
     return jsonify({"token": access_token, "user":data['username']}), 200
 
 @auth_bp.route('/forgot-password', methods=['POST'])
