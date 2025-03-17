@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
+
 from models import User, db, Post, PostVote, MBTIQuestion, UserTestResult, MBTIType
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
@@ -55,6 +56,8 @@ def reset_password():
 @auth_bp.route('/validate-token', methods=['GET'])
 def validate_token():
     auth_header = request.headers.get("Authorization")
+    with current_app.app_context():
+        print("jwt key===>", current_app.config["JWT_SECRET_KEY"])
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]  # 获取 Bearer 后面的 token
     else:
