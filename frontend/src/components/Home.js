@@ -1,11 +1,21 @@
-// frontend/src/components/Home.js
+
 import React, { useState, useEffect }  from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Home.css'; 
 import { useNavigate } from 'react-router-dom';
 
+const avatars = {
+  default: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+  robo: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=robohash",
+  retro: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=retro",
+  monster: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=monsterid",
+  identicon: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon",
+  wavatar: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=wavatar"
+};
+
 const Home = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [avatarType, setAvatarType] = useState("default");
     const navigate = useNavigate();
   
     // 检查本地是否有 Token 来判断登录状态
@@ -19,8 +29,12 @@ const Home = () => {
               console.log("token is wrong!");
               localStorage.removeItem('token');
               setIsLoggedIn(false);
+              setAvatarType("default");
             }else{
               setIsLoggedIn(true);
+              const avatarOptions = ["robo", "retro", "monster", "identicon", "wavatar"];
+              const randomAvatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+              setAvatarType(randomAvatar);
             }
           } catch (error) {
             localStorage.removeItem('token');
@@ -29,7 +43,6 @@ const Home = () => {
         };
       
         const token = localStorage.getItem('token');
-        console.log("get token===>",token);
         if (token) {
           validateToken();
           const interval = setInterval(validateToken, 5 * 60 * 1000); // 每5分钟验证一次
@@ -41,7 +54,7 @@ const Home = () => {
     const handleLogout = () => {
       localStorage.removeItem('token');
       setIsLoggedIn(false); // 更新状态
-      navigate('/login');
+      navigate('/');
     };
   
     // 处理顶部按钮点击（未登录跳转到登录页）
@@ -51,64 +64,34 @@ const Home = () => {
           navigate('/login');
         } else {
           console.log('User is logged in, navigating to:', path);
-          navigate(path); // 跳转到目标页面（需后续开发）
+          navigate(path); 
         }
       };
     
 
   return (
-    <div className="home-container">
-      {/* 全屏背景图 */}
-      <div className="background-image"></div>
-      
-      {/* 顶部4个按钮 */}
-      <div className="top-buttons">
-  <button 
-    className="main-btn"
-    onClick={() => handleProtectedAction('/introduction-personality')}
-  >
-    Introduction to Personality
-  </button>
-  <button 
-    className="main-btn"
-    onClick={() => handleProtectedAction('/introduction-iching')}
-  >
-    Introduction to Iching
-  </button>
-  <button 
-    className="main-btn"
-    onClick={() => handleProtectedAction('/forum')}
-  >
-    Forum
-  </button>
-  <button 
-    className="main-btn"
-    onClick={() => handleProtectedAction('/historical-data')}
-  >
-    Historical Test Data
-  </button>
-</div>
-
-      {/* 中间测试按钮 */}
-      <div className="center-button">
-        <button className="start-test-btn" 
-        onClick={() => handleProtectedAction('/personality-test')}>Start Test</button>
+      <div className="v36_2">
+        <span className="v36_42">I Ching & Personality</span>
+  
+        <button className="avatar" onClick={() => handleProtectedAction('/test-history')}>
+            <img src={avatars[avatarType] } alt="User Avatar" />
+        </button>
+  
+        <button className="v36_47" onClick={() => navigate('/introduction-personality')}>Introduction to Personality</button>
+        <button className="v36_50" onClick={() => navigate('/introduction-iching')}>Introduction to I Ching</button>
+        <button className="v36_53" onClick={() => handleProtectedAction('/forum')}>Forum</button>
+  
+        <div className="v36_84"></div>
+  
+        <button className="v36_86" onClick={() => handleProtectedAction('/personality-test')}>Start your test</button>
+  
+        <div className="v88" style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+          <button className="v36_89"  onClick={() => handleProtectedAction('/login')} disabled={isLoggedIn}>Login</button>
+          <button className="v36_91"  onClick={handleLogout} disabled={!isLoggedIn}>Log out</button>
+          <button className="v36_93"  onClick={() => handleProtectedAction('/register')} disabled={isLoggedIn}>Sign up</button>
+        </div>
       </div>
-
-      {/* 底部导航按钮 */}
-      <div className="bottom-nav">
-  <Link to="/login" className="nav-btn" disabled={isLoggedIn}>Login</Link>
-  <Link to="/register" className="nav-btn" disabled={isLoggedIn}>Register</Link>
-  <button 
-    className="nav-btn" 
-    onClick={handleLogout}
-    disabled={!isLoggedIn}
-  >
-    Logout
-  </button>
-</div>
-    </div>
-  );
+    );
 };
 
 export default Home;

@@ -102,6 +102,7 @@ class UserTestResult(db.Model):
     f_score = db.Column(db.Integer, default=0)
     j_score = db.Column(db.Integer, default=0)
     p_score = db.Column(db.Integer, default=0)
+    birthday = db.Column(db.Date, nullable=True)
 
     mbti_type = db.Column(db.String(4), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)

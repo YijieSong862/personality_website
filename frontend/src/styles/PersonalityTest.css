@@ -103,3 +103,53 @@
     line-height: 20px;
     text-align: right;
   }
+
+  /* Birthday Input */
+.birthday-input-container {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.birthday-input-container label {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #555;
+}
+
+.birthday-input-container input {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 2px solid #3498db;
+  width: 80%;
+  max-width: 400px;
+  display: block;
+  margin: 0 auto;
+  margin-top: 0.5rem;
+  outline: none;
+}
+
+.birthday-input-container input:focus {
+  border-color: #2980b9;
+}
+
+.options button {
+  padding: 1rem;
+  border: 2px solid #3498db;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.options button:hover {
+  background: #3498db;
+  color: white;
+}
+
+.options button.selected {
+  background: #3498db;
+  color: white;
+}

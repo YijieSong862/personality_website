@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // 用于页面跳转
+import { useNavigate } from 'react-router-dom';
 import '../styles/PersonalityTest.css'; 
 
 const PersonalityTest = () => {
-  const navigate = useNavigate(); // 用于跳转
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({
@@ -16,8 +16,8 @@ const PersonalityTest = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [birthday, setBirthday] = useState(''); // 存储生日
 
-  // 获取测试题目
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -40,7 +40,7 @@ const PersonalityTest = () => {
         }));
 
         setQuestions(formattedQuestions);
-        setSelectedAnswers(new Array(formattedQuestions.length).fill(null)); // 初始化选择数组
+        setSelectedAnswers(new Array(formattedQuestions.length).fill(null)); 
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -51,42 +51,41 @@ const PersonalityTest = () => {
     fetchQuestions();
   }, []);
 
-  // 处理选项选择
   const handleAnswer = (choiceIndex) => {
-    console.log("当前题目:", currentQuestion, "选择选项索引:", choiceIndex);
-
     const selectedOption = questions[currentQuestion].options[choiceIndex];
     const selectedTrait = selectedOption.trait;
     const weight = selectedOption.weight;
+
+    if (!birthday) {
+      alert("please fill in your birthday"); // forbit fill in
+      return; // 如果没有填写生日，阻止切换到下一题
+    }
 
     setScores(prev => ({
       ...prev,
       [selectedTrait]: prev[selectedTrait] + weight
     }));
 
-    // 更新 selectedAnswers 数组
     setSelectedAnswers(prev => {
       const newSelected = [...prev];
       newSelected[currentQuestion] = choiceIndex;
       return newSelected;
     });
 
-    // 等待 selectedAnswers 更新完成后再执行下一步
     setTimeout(() => {
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(prev => prev + 1);
       } else {
-        setTimeout(calculateFinalResult, 200); // 确保 selectedAnswers 被更新
+        setTimeout(calculateFinalResult, 200); 
       }
     }, 100);
   };
 
-  // 计算最终结果
   const calculateFinalResult = async () => {
     if (selectedAnswers.includes(null)) {   
-      console.log("==>error! not all questions answered:", selectedAnswers);
+      console.log("questions not completed");
       //setError("请先完成所有题目");
-      // return;
+      //return;
     }
 
     const mbtiType = [
@@ -108,20 +107,19 @@ const PersonalityTest = () => {
           answers: questions.map((q, index) => ({
             question_id: q.id,
             choice_index: selectedAnswers[index]
-          }))
+          })),
+          birthday: birthday // 发送生日信息
         })
       });
 
       if (!response.ok) throw new Error('提交结果失败');
       const resultData = await response.json();
-      console.log("=====> result.id", resultData.result_id);
       navigate(`/test-results/${resultData.result_id}`);
     } catch (err) {
       setError('提交结果失败');
     }
   };
 
-  // 渲染加载状态
   if (loading) {
     return (
       <div className="loading-container">
@@ -131,7 +129,6 @@ const PersonalityTest = () => {
     );
   }
 
-  // 渲染错误状态
   if (error) {
     return (
       <div className="error-container">
@@ -142,18 +139,15 @@ const PersonalityTest = () => {
     );
   }
 
-  // 渲染测试结果
   if (result) {
     return (
       <div className="result-container">
         <h2>你的MBTI类型是：{result.mbti_type}</h2>
- 
         <button onClick={() => window.location.reload()}>test again</button>
       </div>
     );
   }
 
-  // 渲染当前问题
   const currentQ = questions[currentQuestion];
   return (
     <div className="test-container">
@@ -163,6 +157,19 @@ const PersonalityTest = () => {
       </div>
       
       <div className="question-card">
+        {currentQuestion === 0 && (
+          <div className="birthday-input-container">
+            <label htmlFor="birthday">Please input your birthday:</label>
+            <input
+              type="date"
+              id="birthday"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              required
+            />
+          </div>
+        )}
+
         <h3>{currentQ.text}</h3>
         <div className="options">
           {currentQ.options.map((option, index) => (

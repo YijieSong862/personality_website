@@ -1,16 +1,61 @@
-.iching-introduction {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .iching-introduction h2 {
-    color: #333;
-  }
-  
-  .iching-introduction p {
-    color: #666;
-    line-height: 1.6;
-  }
+/* 页面背景，神秘的渐变效果 */
+
+
+/* 容器样式，增加阴影和渐变背景 */
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* 主要内容区域 */
+.content {
+  background: rgba(0, 0, 0, 0.7); /* 黑色半透明背景，增加神秘感 */
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 25px rgba(0, 0, 0, 0.8);
+  max-width: 800px;
+  text-align: justify;
+  line-height: 1.8;
+}
+
+/* 标题样式，突出且有古典感 */
+.title {
+  font-size: 32px;
+  color: #f39c12; /* 金色标题，增添贵气感 */
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* 文字内容样式 */
+.description {
+  font-size: 18px;
+  color: #ecf0f1;
+  line-height: 1.8;
+  margin-bottom: 25px;
+}
+
+/* 按钮样式，富有古典气息 */
+.button {
+  display: inline-block;
+  padding: 15px 35px;
+  background-color: #8e44ad; /* 紫色背景，神秘且古典 */
+  color: white;
+  font-size: 20px;
+  text-decoration: none;
+  border-radius: 50px;
+  text-align: center;
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 悬停效果，提升交互感 */
+.button:hover {
+  background-color: #9b59b6;
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.8);
+}

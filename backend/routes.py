@@ -201,7 +201,6 @@ def submit_mbti_test():
     """处理MBTI测试提交，计算维度得分并生成测试结果"""
     user_id = get_jwt_identity()
     answers = request.get_json().get('answers', [])
-   
     # 初始化得分跟踪器和已处理题目集合
     dimension_scores = defaultdict(int)
     processed_questions = set()
@@ -271,6 +270,14 @@ def submit_mbti_test():
                 'T' if tf_ratio >= 0 else 'F',
                 'J' if jp_ratio >= 0 else 'P'
             ])
+
+            birthday_str = request.get_json().get('birthday')
+            birthday = None
+            if birthday_str:
+                try:
+                    birthday = datetime.strptime(birthday_str, '%Y-%m-%d').date()  # 假设日期格式为YYYY-MM-DD
+                except ValueError:
+                    return jsonify({"error": "Invalid birthday format. Use YYYY-MM-DD."}), 400
             # 创建测试结果记录
             test_result = UserTestResult(
                 user_id=user_id,
@@ -282,9 +289,9 @@ def submit_mbti_test():
                 f_score=dimension_scores.get('F', 0),
                 j_score=dimension_scores.get('J', 0),
                 p_score=dimension_scores.get('P', 0),
-                mbti_type=mbti_type
+                mbti_type=mbti_type,
+                birthday=birthday 
             )
-            
             db.session.add(test_result)
             # 返回成功响应
         return jsonify({
@@ -350,3 +357,28 @@ def get_test_result(result_id):
     
     return jsonify(response_data), 200
 
+
+@auth_bp.route('/mbti-test/test_results', methods=['GET'])
+@jwt_required()  # 确保请求包含有效的JWT token
+def get_test_results():
+    # 获取当前用户的ID
+    user_id = get_jwt_identity()
+
+    # 从数据库中查询该用户的所有测试结果
+    test_results = UserTestResult.query.filter_by(user_id=user_id).all()
+
+    # 如果没有找到测试结果，返回空列表
+    if not test_results:
+        return jsonify([])
+
+    # 格式化查询结果
+    results = []
+    for result in test_results:
+        results.append({
+            'id': result.id,
+            'test_time': result.created_at.strftime('%Y-%m-%d %H:%M:%S'), 
+            'mbti_type': result.mbti_type
+        })
+    
+    # 返回测试结果
+    return jsonify(results)

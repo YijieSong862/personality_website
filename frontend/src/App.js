@@ -7,10 +7,12 @@ import ForgotPassword from './components/ForgotPassword';
 import Home from './components/Home'; 
 import ProtectedRoute from './components/ProtectedRoute';
 import IntroductionPersonality from './components/IntroductionPersonality';
+import IntroductionIChing from './components/IntroductionIChing';
 import Forum from './components/Forum'; 
 import PostDetail from './components/PostDetail';
 import CreatePost from './components/CreatePost';
 import PersonalityTest from './components/PersonalityTest';
+import TestHistory from './components/TestHistory';
 import TestResult from './components/TestResult';
 import KKKK from './components/KKKK';
 
@@ -27,7 +29,9 @@ function App() {
         <Route path="/introduction-personality" element={
             <IntroductionPersonality />
         } />
-        
+        <Route path="/introduction-iching" element={
+            <IntroductionIChing />
+        } />
         <Route path="/forum" element={
          // <ProtectedRoute>
           <Forum />
@@ -56,6 +60,11 @@ function App() {
         <Route path="/test-results/:resultId" element={
          // <ProtectedRoute>
             <TestResult />
+         // </ProtectedRoute>
+        } />
+        <Route path="/test-history" element={
+         // <ProtectedRoute>
+            <TestHistory />
          // </ProtectedRoute>
         } />
       </Routes>

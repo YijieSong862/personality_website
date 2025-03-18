@@ -3,14 +3,23 @@ import '../styles/IChingIntroduction.css';
 
 const IChingIntroduction = () => {
   return (
-    <div className="iching-introduction">
-      <h2>易经 介绍</h2>
-      <p>
-        易经，又称《周易》或《易经六十四卦》，是中国古代的一部占卜哲学经典，也是儒家经典之一。它起源于西周初年，经过春秋战国时期的发展，最终在西汉时期定型。
-      </p>
-      <p>
-        易经的核心思想是“变易”，即世间万物都在不断变化。它通过六十四卦的卦象和卦辞，揭示了事物发展的规律和变化的趋势。易经不仅用于占卜，还蕴含着深刻的哲学智慧，对后世的哲学、文化、科学等领域产生了深远的影响。
-      </p>
+    <div className="container">
+      <div className="content">
+        <h1 className="title">The I Ching - Book of Changes</h1>
+        <p className="description">
+          The I Ching, also known as the Book of Changes, is one of the oldest and most influential Chinese classics, dating back over 3,000 years. It serves as both a divination system and a philosophical guide, deeply rooted in Chinese culture, Confucianism, Daoism, and traditional cosmology.
+        </p>
+        <p className="description">
+          At the core of the I Ching are 64 hexagrams, each composed of six lines that can be either solid (yang) or broken (yin). These hexagrams symbolize different states, changes, and patterns of the universe. The text provides interpretations and insights into life, decision-making, and the natural cycles of change.
+        </p>
+        <p className="description">
+          The philosophy behind the I Ching emphasizes the interplay of yin and yang, balance, and adaptation. It suggests that nothing in the world is static, and by understanding the patterns of change, one can navigate uncertainties and make wise choices.
+        </p>
+        <p className="description">
+          Throughout history, scholars, emperors, and philosophers have consulted the I Ching for wisdom and strategic guidance. Even in modern times, it remains a valuable tool for self-reflection, leadership, and understanding the dynamics of life.
+        </p>
+        <a href="/introduction-personality" className="button">Go Test</a>
+      </div>
     </div>
   );
 };
