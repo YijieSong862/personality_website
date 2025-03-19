@@ -34,21 +34,37 @@ const Forum = () => {
     // 处理点赞
     const handleVote = async (postId) => {
       try {
-        const response = await api.post(`/posts/${postId}/vote`);
-        
-        // 局部更新点赞数
-        setData(prev => ({
+        const response = await fetch(`/api/posts/${postId}/vote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+    
+        if (!response.ok) {
+          console.log("vote: API response is wrong!");
+          return;
+        }
+    
+        // 解析 JSON 响应
+        const result = await response.json(); 
+    
+        // 更新状态，确保 votes 不为 undefined
+        setData((prev) => ({
           ...prev,
-          posts: prev.posts.map(post => 
-            post.id === postId ? { ...post, votes: response.data.votes } : post
-          )
+          posts: prev.posts.map((post) =>
+            post.id === postId ? { ...post, votes: result.votes || post.votes } : post
+          ),
         }));
+    
+        console.log("vote ok!");
       } catch (error) {
-        console.error('Vote failed:', error);
-        alert('Please login to vote'); // 未登录提示
+        console.error("Vote failed:", error);
+        alert("Error voting");
       }
     };
-  
+    
     return (
       <div className="forum-container">
         

@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-
-from models import User, db, Post, PostVote, MBTIQuestion, UserTestResult, MBTIType
+from models import User, db, Post, PostVote, MBTIQuestion, UserTestResult, MBTIType, Comment
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token,  decode_token
@@ -143,6 +142,7 @@ def create_post():
 @jwt_required()
 def vote_post(post_id):
     user_id = get_jwt_identity()
+    print("vote:====> ", post_id, user_id)
     vote = PostVote.query.filter_by(user_id=user_id, post_id=post_id).first()
     
     if vote:
@@ -155,6 +155,65 @@ def vote_post(post_id):
     
     db.session.commit()
     return jsonify({'votes': Post.query.get(post_id).votes}), 200
+
+
+# 获取帖子下的所有评论
+@auth_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
+def get_comments(post_id):
+    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.desc()).all()
+    return jsonify([
+        {
+            'id': comment.id,
+            'content': comment.content,
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'user_id': comment.user_id
+        } for comment in comments
+    ]), 200
+
+# 创建评论
+@auth_bp.route('/posts/<int:post_id>/comments', methods=['POST'])
+@jwt_required()
+def create_comment(post_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    if not data or 'content' not in data or not data['content'].strip():
+        return jsonify({'error': 'Content cannot be empty'}), 400
+    
+    comment = Comment(
+        content=data['content'].strip(),
+        post_id=post_id,
+        user_id=user_id,
+        created_at=datetime.utcnow()
+    )
+    
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify({
+        'id': comment.id,
+        'content': comment.content,
+        'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'user_id': comment.user_id
+    }), 201
+
+# 删除评论
+@auth_bp.route('/comments/<int:comment_id>', methods=['DELETE'])
+@jwt_required()
+def delete_comment(comment_id):
+    user_id = get_jwt_identity()
+    comment = Comment.query.get(comment_id)
+
+    if not comment:
+        return jsonify({'error': 'Comment not found'}), 404
+
+    if comment.user_id != user_id:
+        return jsonify({'error': 'You can only delete your own comments'}), 403
+    
+    db.session.delete(comment)
+    db.session.commit()
+    
+    return jsonify({'message': 'Comment deleted'}), 200
 
 
 @auth_bp.route('/mbti-test/questions', methods=['GET'])

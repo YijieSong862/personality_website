@@ -25,6 +25,7 @@ const Home = () => {
             const response = await fetch('/api/validate-token', {
               headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
+            
             if (!response.ok) {
               console.log("token is wrong!");
               localStorage.removeItem('token');

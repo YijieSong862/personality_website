@@ -23,7 +23,16 @@ const PostDetail = () => {
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post(`/posts/${postId}/comments`, { content: commentContent });
+      const token = localStorage.getItem('token');
+      await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: commentContent })
+      });
+
       setCommentContent('');
       // Refresh comments
       const response = await api.get(`/posts/${postId}`);
