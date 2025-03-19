@@ -226,7 +226,7 @@ def get_mbti_questions():
         'SN': MBTIQuestion.query.filter_by(dimension='SN').count(),
         # ...其他维度
     }
-    if any(v < 10 for v in question_count.values()):
+    if any(v < 5 for v in question_count.values()):
         return jsonify(error="题库尚未初始化完成"), 503
 
     # 优化后的查询逻辑
@@ -234,7 +234,7 @@ def get_mbti_questions():
     for dim in dimensions:
         questions = MBTIQuestion.query.filter_by(
             dimension=dim
-        ).order_by(func.random()).limit(10).all()  # 每个维度取10题
+        ).order_by(func.random()).limit(5).all() 
         
         selected_questions.extend([
             {
