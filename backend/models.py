@@ -112,9 +112,8 @@ class MBTIType(db.Model):
     __tablename__ = 'mbti_type'
     
     mbti_type = db.Column(db.String(4), primary_key=True)
-    frequency = db.Column(db.Float)  # 人口统计数据
-    cognitive_function = db.Column(db.String(50))  # 认知功能（如Ni/Se）
-    profile = db.Column(db.Text)  # 人格画像
-    career_recommendations = db.Column(db.Text)  # 推荐职业
-    famous_people = db.Column(db.Text)  # 相关知名人物
-    examples = db.Column(db.Text)  # 额外案例或补充资料
+    frequency = db.Column(db.Float)  
+    profile = db.Column(db.Text)  
+    career_recommendations = db.Column(db.Text)  
+    development = db.Column(db.Text) 
+    books = db.Column(db.Text) 

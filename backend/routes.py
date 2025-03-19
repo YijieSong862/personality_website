@@ -401,13 +401,12 @@ def get_test_result(result_id):
             "F": result.f_score,
             "J": result.j_score,
             "P": result.p_score
-        },
+        },      
         "type_info": {
             "description": mbti_profile.profile,
-            #"strengths": mbti_profile.strengths.split(';') if mbti_profile.strengths else [],
-            #"weaknesses": mbti_profile.weaknesses.split(';') if mbti_profile.weaknesses else [],
-            "career_recommendations": mbti_profile.career_recommendations.split(';') if mbti_profile.career_recommendations else [],
-            "famous_examples": mbti_profile.famous_people.split(';') if mbti_profile.famous_people else []
+            "development": mbti_profile.development,
+            "books": mbti_profile.books,
+            "career_recommendations": mbti_profile.career_recommendations
         },
         "test_metadata": {
             "test_date": result.created_at.isoformat()

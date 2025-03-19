@@ -24,6 +24,7 @@ def insert_mbti_questions():
 
         db.session.commit()  # 提交数据库操作
 
+ 
 # 初始化数据库中的MBTI类型数据
 def insert_mbti_types():
     for mbti, data in mbti_types.items():
@@ -31,11 +32,10 @@ def insert_mbti_types():
             mbti_type = MBTIType(
                 mbti_type=mbti,
                 frequency=data['frequency'],
-                cognitive_function=data['cognitive_function'],
                 profile=data['description'],
                 career_recommendations=data['career'],
-                famous_people=data['famous'],
-                examples=""  # 可以根据需要添加额外的案例或补充资料
+                development=data['The direction of development'],
+                books=data['Recommended films and books'],
             )
             db.session.add(mbti_type)
         except IntegrityError:
