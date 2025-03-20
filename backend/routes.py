@@ -74,7 +74,7 @@ def get_posts():
     page = request.args.get('page', 1, type=int)
     per_page = 10  # 每页10条
     posts = Post.query.order_by(Post.created_at.desc()).paginate(page=page, per_page=per_page)
-    
+    print("====> posts:", posts)
     return jsonify({
         'posts': [{
             'id': post.id,

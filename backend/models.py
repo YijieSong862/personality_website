@@ -41,7 +41,6 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    
     votes = db.Column(db.Integer, default=0)
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
     voters = db.relationship('PostVote', backref='post', lazy=True, cascade='all, delete-orphan')
