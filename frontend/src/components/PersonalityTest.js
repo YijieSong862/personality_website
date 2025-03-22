@@ -12,11 +12,14 @@ const PersonalityTest = () => {
     T: 0, F: 0,
     J: 0, P: 0
   });
-  const [result, setResult] = useState(null);
+  const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [birthday, setBirthday] = useState('');
+  const [firstWord, setFirstWord] = useState('');
+  const [lifePriority, setLifePriority] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedAnswers, setSelectedAnswers] = useState([]);
-  const [birthday, setBirthday] = useState(''); // 存储生日
+  const [showSubmitButton, setShowSubmitButton] = useState(false); // 控制提交按钮的显示
+  const [testStarted, setTestStarted] = useState(false); // 控制是否开始测试
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -34,7 +37,7 @@ const PersonalityTest = () => {
           dimension: q.dimension,
           options: q.options.map((opt, index) => ({
             text: opt.text,
-            trait: q.dimension[index], // E/I/S/N等
+            trait: q.dimension[index],
             weight: opt.weight || 1
           }))
         }));
@@ -56,11 +59,6 @@ const PersonalityTest = () => {
     const selectedTrait = selectedOption.trait;
     const weight = selectedOption.weight;
 
-    if (!birthday) {
-      alert("please fill in your birthday"); // forbit fill in
-      return; // 如果没有填写生日，阻止切换到下一题
-    }
-
     setScores(prev => ({
       ...prev,
       [selectedTrait]: prev[selectedTrait] + weight
@@ -72,20 +70,18 @@ const PersonalityTest = () => {
       return newSelected;
     });
 
-    setTimeout(() => {
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(prev => prev + 1);
-      } else {
-        setTimeout(calculateFinalResult, 200); 
-      }
-    }, 100);
+    // 题目答完后显示提交按钮
+    if (currentQuestion === questions.length - 1) {
+      setShowSubmitButton(true);
+    } else {
+      setCurrentQuestion(prev => prev + 1);
+    }
   };
 
   const calculateFinalResult = async () => {
-    if (selectedAnswers.includes(null)) {   
-      console.log("questions not completed");
-      //setError("请先完成所有题目");
-      //return;
+    if (selectedAnswers.includes(null)) {
+      alert("请完成所有题目！");
+      return;
     }
 
     const mbtiType = [
@@ -108,7 +104,9 @@ const PersonalityTest = () => {
             question_id: q.id,
             choice_index: selectedAnswers[index]
           })),
-          birthday: birthday // 发送生日信息
+          birthday,
+          first_word: firstWord,
+          life_priority: lifePriority
         })
       });
 
@@ -118,6 +116,16 @@ const PersonalityTest = () => {
     } catch (err) {
       setError('提交结果失败');
     }
+  };
+
+  const handleStartTest = () => {
+    // 确保所有必填项已填写
+    if (!birthday || !firstWord || !lifePriority) {
+      alert("请填写所有必填信息！");
+      return;
+    }
+
+    setTestStarted(true); // 开始测试
   };
 
   if (loading) {
@@ -134,54 +142,86 @@ const PersonalityTest = () => {
       <div className="error-container">
         <h3>发生错误</h3>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>re-test</button>
-      </div>
-    );
-  }
-
-  if (result) {
-    return (
-      <div className="result-container">
-        <h2>你的MBTI类型是：{result.mbti_type}</h2>
-        <button onClick={() => window.location.reload()}>test again</button>
+        <button onClick={() => window.location.reload()}>重新测试</button>
       </div>
     );
   }
 
   const currentQ = questions[currentQuestion];
+
   return (
     <div className="test-container">
       <div className="progress-bar">
         <div style={{ width: `${(currentQuestion + 1) / questions.length * 100}%` }}></div>
         <span>Question: {currentQuestion + 1}/{questions.length}</span>
       </div>
-      
-      <div className="question-card">
-        {currentQuestion === 0 && (
-          <div className="birthday-input-container">
-            <label htmlFor="birthday">Please input your birthday:</label>
-            <input
-              type="date"
-              id="birthday"
-              value={birthday}
-              onChange={(e) => setBirthday(e.target.value)}
-              required
-            />
-          </div>
-        )}
 
-        <h3>{currentQ.text}</h3>
-        <div className="options">
-          {currentQ.options.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswer(index)}
-              className={selectedAnswers[currentQuestion] === index ? 'selected' : ''}
-            >
-              {option.text}
-            </button>
-          ))}
-        </div>
+      <div className="question-card">
+        {!testStarted ? (
+          <div className="intro-section">
+            <div className="input-group">
+              <label htmlFor="birthday">请输入你的生日：</label>
+              <input
+                type="date"
+                id="birthday"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="firstWord">眼前脑海里出现的第一个词：</label>
+              <input
+                type="text"
+                id="firstWord"
+                value={firstWord}
+                onChange={(e) => setFirstWord(e.target.value)}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="lifePriority">请选择测试类别:</label>
+              <select
+                id="lifePriority"
+                value={lifePriority}
+                onChange={(e) => setLifePriority(e.target.value)}
+                className="styled-select"
+              >
+                <option value="健康">健康</option>
+                <option value="性格">性格</option>
+                <option value="职业">职业</option>
+              </select>
+            </div>
+            <div className="start-test-button-container">
+              <button onClick={handleStartTest} className="start-test-btn">
+                开始测试
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h3>{currentQ.text}</h3>
+            <div className="options">
+              {currentQ.options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleAnswer(index)}
+                  className={selectedAnswers[currentQuestion] === index ? 'selected' : ''}
+                >
+                  {option.text}
+                </button>
+              ))}
+            </div>
+
+            {showSubmitButton && (
+              <div className="submit-container">
+                <button className="submit-btn" onClick={calculateFinalResult}>
+                  提交
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

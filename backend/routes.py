@@ -6,6 +6,16 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_tok
 from datetime import datetime, timedelta
 import random
 from collections import defaultdict
+from dotenv import load_dotenv
+import os
+import openai
+import re
+
+# 加载环境变量
+load_dotenv()
+
+# 从环境变量中获取 OpenAI API 密钥
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -349,7 +359,10 @@ def submit_mbti_test():
                 j_score=dimension_scores.get('J', 0),
                 p_score=dimension_scores.get('P', 0),
                 mbti_type=mbti_type,
-                birthday=birthday 
+                birthday=birthday,
+                first_word = request.get_json().get('first_word'),
+                life_priority = request.get_json().get('life_priority')
+
             )
             db.session.add(test_result)
             # 返回成功响应
@@ -414,6 +427,75 @@ def get_test_result(result_id):
     }
     
     return jsonify(response_data), 200
+
+
+@auth_bp.route('/mbti-test/bagua_results/<int:result_id>', methods=['GET'])
+@jwt_required()
+def get_ai_result(result_id):
+    result = UserTestResult.query.get_or_404(result_id)
+
+
+    if not result.bagua_suggestion:
+        prompt = f"""
+        请根据以下信息提供一个结合 MBTI 类型和易经八卦的英语的测字建议：
+        
+        用户的 MBTI 类型是: {result.mbti_type}.
+        用户要测的字是：{result.first_word}.
+        用户关心的问题是: {result.life_priority}. （例如：健康、婚姻、事业等）
+        
+        结合这两者，提供个性化的建议，帮助用户更好地理解自己在某一方面的运势或挑战，并提出实用的建议。
+        
+        结果应简洁、明了，并且具有深刻的文化和心理意义。
+        单词数请在1000字以内。
+        输出结构化的响应，包括以下字段：
+        - summary
+        - Word Analysis
+        - I Ching Interpretation
+        - Key Messages
+        - Final Advice
+        """
+        prompt = prompt.encode("utf-8").decode("utf-8")
+
+
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "你是一个基于MBTI和八卦提供建议的专家。"},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.7
+            )
+
+            suggestion = response.choices[0].message.content.strip()
+            result.bagua_suggestion = suggestion.encode("utf-8").decode("utf-8")
+            db.session.commit()
+
+            print("===>bagua:", prompt)
+            print("===>bagua lai le:", suggestion)
+            summary = re.search(r"Summary:\s*(.*?)\s*Word Analysis:", suggestion, re.DOTALL)
+            word_analysis = re.search(r"Word Analysis:\s*(.*?)\s*I Ching Interpretation:", suggestion, re.DOTALL)
+            iching_interpretation = re.search(r"I Ching Interpretation:\s*(.*?)\s*Key Messages:", suggestion, re.DOTALL)
+            key_messages = re.search(r"Key Messages:\s*(.*?)\s*Final Advice:", suggestion, re.DOTALL)
+            final_advice = re.search(r"Final Advice:\s*(.*)", suggestion, re.DOTALL)
+    
+            # Return the structured response as a dictionary
+            response_data = {
+                "summary": summary.group(1).strip() if summary else None,
+                "word_analysis": word_analysis.group(1).strip() if word_analysis else None,
+                "i_ching_interpretation": iching_interpretation.group(1).strip() if iching_interpretation else None,
+                "key_messages": [msg.strip() for msg in key_messages.group(1).strip().split('\n')] if key_messages else [],
+                "final_advice": final_advice.group(1).strip() if final_advice else None
+            }
+            return jsonify(response_data), 200
+        except Exception as e:
+            print(f"无法生成八卦建议，发生错误: {e}")
+            return jsonify(error="ai suangua error"), 500
+    else:
+        return jsonify({"bagua_suggestion": result.bagua_suggestion}), 200
+
+
 
 
 @auth_bp.route('/mbti-test/test_results', methods=['GET'])

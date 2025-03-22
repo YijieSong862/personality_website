@@ -102,6 +102,9 @@ class UserTestResult(db.Model):
     j_score = db.Column(db.Integer, default=0)
     p_score = db.Column(db.Integer, default=0)
     birthday = db.Column(db.Date, nullable=True)
+    first_word = db.Column(db.Text, nullable=True)
+    life_priority = db.Column(db.Text, nullable=True)
+    bagua_suggestion = db.Column(db.Text, nullable=True)
 
     mbti_type = db.Column(db.String(4), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
