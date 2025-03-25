@@ -15,7 +15,7 @@ const PersonalityTest = () => {
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [birthday, setBirthday] = useState('');
   const [firstWord, setFirstWord] = useState('');
-  const [lifePriority, setLifePriority] = useState('健康'); 
+  const [lifePriority, setLifePriority] = useState(''); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSubmitButton, setShowSubmitButton] = useState(false); // 控制提交按钮的显示
@@ -187,9 +187,10 @@ const PersonalityTest = () => {
                 onChange={(e) => setLifePriority(e.target.value)}
                 className="styled-select"
               >
-                <option value="健康">健康</option>
-                <option value="性格">性格</option>
-                <option value="职业">职业</option>
+                <option value="" disabled selected>Please choose an option</option>
+                <option value="健康">Health</option>
+                <option value="婚姻">Marriage</option>
+                <option value="职业">Careers</option>
               </select>
             </div>
             <div className="start-test-button-container">
