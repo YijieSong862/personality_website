@@ -288,12 +288,12 @@ def submit_mbti_test():
                 if not required_fields.issubset(answer.keys()):
                     missing = required_fields - answer.keys()
                     raise ValueError(f"缺少必要字段：{', '.join(missing)}")
-                
+                print("===> question answser: ", answer)
                 question_id = answer['question_id']
-                if 'choice_index' == None:   # something wrong in frontend
-                    choice_idx = answer['choice_index']
-                else:
+                if answer['choice_index'] == None:   # something wrong in frontend
                     choice_idx = random.randint(0, 1)
+                else:
+                    choice_idx = answer['choice_index']
                
                 # 有效性校验
                 if not (0 <= choice_idx <= 1):
@@ -323,7 +323,7 @@ def submit_mbti_test():
                 valid_types = {'E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'}
                 if selected_type not in valid_types:
                     raise ValueError(f"无效的类型：{selected_type}（问题ID：{question_id}）")
-                
+                #print("=====> seelect type: ", selected_type)
                 # 累加维度得分
                 dimension_scores[selected_type] += weight
             
@@ -472,8 +472,8 @@ def get_ai_result(result_id):
             result.bagua_suggestion = suggestion.encode("utf-8").decode("utf-8")
             db.session.commit()
 
-            print("===>bagua:", prompt)
-            print("===>bagua lai le:", suggestion)
+            #print("===>bagua:", prompt)
+            #print("===>bagua lai le:", suggestion)
             summary = re.search(r"Summary:\s*(.*?)\s*Word Analysis:", suggestion, re.DOTALL)
             word_analysis = re.search(r"Word Analysis:\s*(.*?)\s*I Ching Interpretation:", suggestion, re.DOTALL)
             iching_interpretation = re.search(r"I Ching Interpretation:\s*(.*?)\s*Key Messages:", suggestion, re.DOTALL)

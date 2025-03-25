@@ -15,7 +15,7 @@ const PersonalityTest = () => {
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [birthday, setBirthday] = useState('');
   const [firstWord, setFirstWord] = useState('');
-  const [lifePriority, setLifePriority] = useState('');
+  const [lifePriority, setLifePriority] = useState('健康'); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSubmitButton, setShowSubmitButton] = useState(false); // 控制提交按钮的显示
